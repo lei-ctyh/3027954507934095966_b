@@ -52,17 +52,7 @@
           <span v-if="!loading">登 录</span>
           <span v-else>登 录 中...</span>
         </el-button>
-        <el-button
-          size="large"
-          type="primary"
-          style="width:45%;"
-          @click.native.prevent="handleTry"
-        >
-          <span>获取体验账号</span>
-        </el-button>
-        <div style="float: right;" v-if="register">
-          <router-link class="link-type" :to="'/register'">立即注册</router-link>
-        </div>
+
       </el-form-item>
     </el-form>
     <el-dialog
@@ -84,7 +74,6 @@
     </el-dialog>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2017-{{ currentYear }} ichengle.top 技术支持：关注“程序员诚哥”微信公众号，回复：支持</span>
     </div>
   </div>
 </template>
