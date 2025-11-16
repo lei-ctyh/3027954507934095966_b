@@ -58,17 +58,9 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '',
-    component: Layout,
-    redirect: '/index',
-    children: [
-      {
-        path: '/index',
-        component: () => import('@/views/dashboard/charts'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'redis', affix: true }
-      }
-    ]
+      path: '',
+      component: Layout,
+      redirect: '/system/user',
   },
   {
     path: '',
@@ -79,7 +71,8 @@ export const constantRoutes = [
         path: '/dashboard',
         component: () => import('@/views/dashboard/dashboard'),
         name: 'Dashboard',
-        meta: { title: '数据大屏', icon: 'dashboard', affix: true }
+        hidden: true,
+        meta: { title: '数据大屏', icon: 'dashboard' }
       }
     ]
   },
@@ -92,7 +85,8 @@ export const constantRoutes = [
         path: '/description',
         component: () => import('@/views/index'),
         name: 'Description',
-        meta: { title: '项目介绍', icon: 'button', affix: true }
+        hidden: true,
+        meta: { title: '项目介绍', icon: 'button' }
       }
     ]
   },

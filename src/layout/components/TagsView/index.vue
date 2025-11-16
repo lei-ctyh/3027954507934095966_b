@@ -167,6 +167,10 @@ function refreshSelectedTag(view) {
   }
 }
 function closeSelectedTag(view) {
+  if (this.visitedViews.length == 1) {
+	  this.$modal.msgWarning("当前为最后一个页签，不允许删除。");
+	  return;
+  }
   proxy.$tab.closePage(view).then(({ visitedViews }) => {
     if (isActive(view)) {
       toLastView(visitedViews, view)

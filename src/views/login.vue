@@ -46,7 +46,7 @@
           :loading="loading"
           size="large"
           type="primary"
-          style="width:45%;"
+          style="width:100%;"
           @click.prevent="handleLogin"
         >
           <span v-if="!loading">登 录</span>
@@ -137,7 +137,7 @@ function handleLogin() {
       }
       // 调用action的登录方法
       userStore.login(loginForm.value).then(() => {
-        router.push({ path: redirect.value || "/" });
+        router.push({ path: "/" });
       }).catch(() => {
         loading.value = false;
         // 重新获取验证码
