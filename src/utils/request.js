@@ -11,6 +11,15 @@ let downloadLoadingInstance;
 // 是否显示重新登录
 export let isRelogin = { show: false };
 
+const notificationDedup = new Map()
+function notifyErrorOnce(title, ttlMs = 3000) {
+  const now = Date.now()
+  const last = notificationDedup.get(title) || 0
+  if (now - last < ttlMs) return
+  notificationDedup.set(title, now)
+  ElNotification.error({ title })
+}
+
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 对应国际化资源文件后缀
 axios.defaults.headers['Content-Language'] = 'zh_CN'
@@ -102,7 +111,7 @@ service.interceptors.response.use(res => {
       ElMessage({ message: msg, type: 'warning' })
       return Promise.reject(new Error(msg))
     } else if (code !== 200) {
-      ElNotification.error({ title: msg })
+      notifyErrorOnce(msg)
       return Promise.reject('error')
     } else {
       return  Promise.resolve(res.data)

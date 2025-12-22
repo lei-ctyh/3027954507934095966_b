@@ -9,10 +9,48 @@ import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
 import usePermissionStore from '@/store/modules/permission'
 import {useBasicStore} from '@/store/modules/basic';
+import auth from '@/plugins/auth'
 
 NProgress.configure({ showSpinner: false });
 
 const whiteList = ['/login', '/register'];
+
+function isExternalPath(path) {
+  return typeof path === 'string' && isHttp(path)
+}
+
+function joinPath(parentPath, childPath) {
+  if (!childPath) return parentPath || '/'
+  if (childPath.startsWith('/')) return childPath
+  const base = parentPath && parentPath !== '/' ? parentPath : ''
+  return `${base}/${childPath}`.replace(/\/+/g, '/')
+}
+
+function getFirstLeafPath(routes, parentPath = '') {
+  if (!Array.isArray(routes)) return ''
+  for (const route of routes) {
+    if (!route || isExternalPath(route.path)) continue
+
+    const fullPath = joinPath(parentPath, route.path)
+    const children = route.children
+
+    if (Array.isArray(children) && children.length) {
+      const childPath = getFirstLeafPath(children, fullPath)
+      if (childPath) return childPath
+    } else if (fullPath && fullPath !== '/') {
+      return fullPath
+    }
+  }
+  return ''
+}
+
+function getFirstAccessiblePath(fallbackRoutes) {
+  const permissionStore = usePermissionStore()
+  const candidates = (Array.isArray(fallbackRoutes) && fallbackRoutes.length)
+    ? fallbackRoutes
+    : (permissionStore.addRoutes || [])
+  return getFirstLeafPath(candidates) || '/description'
+}
 
 router.beforeEach((to, from, next) => {
   NProgress.start()
@@ -35,7 +73,11 @@ router.beforeEach((to, from, next) => {
                 router.addRoute(route) // 动态添加可访问路由表
               }
             })
-            next({ ...to, replace: true }) // hack方法 确保addRoutes已完成
+            if (to.path === '/') {
+              next({ path: getFirstAccessiblePath(accessRoutes), replace: true })
+            } else {
+              next({ ...to, replace: true }) // hack方法 确保addRoutes已完成
+            }
           })
         }).catch(err => {
           useUserStore().logOut().then(() => {
@@ -45,7 +87,11 @@ router.beforeEach((to, from, next) => {
         })
         initData()
       } else {
-        next()
+        if (to.path === '/') {
+          next({ path: getFirstAccessiblePath(), replace: true })
+        } else {
+          next()
+        }
       }
     }
   } else {
@@ -62,14 +108,19 @@ router.beforeEach((to, from, next) => {
 
 async function initData() {
   try {
-    await Promise.all([
-      useBasicStore().getWarehouseList(),
-      useBasicStore().getMerchantList(),
-      useBasicStore().getCategoryList(),
-      useBasicStore().getCategoryTreeList(),
-      useBasicStore().getBrandList(),
-      useBasicStore().getBankAccountList(),
-    ]);
+    const basicStore = useBasicStore()
+    const tasks = []
+
+    if (auth.hasPermi('basic:warehouse:list')) tasks.push(basicStore.getWarehouseList())
+    if (auth.hasPermi('basic:merchant:list')) tasks.push(basicStore.getMerchantList())
+    if (auth.hasPermi('basic:goods:list')) {
+      tasks.push(basicStore.getCategoryList())
+      tasks.push(basicStore.getCategoryTreeList())
+    }
+    if (auth.hasPermi('basic:brand:list')) tasks.push(basicStore.getBrandList())
+    if (auth.hasPermi('basic:bankAccount:list')) tasks.push(basicStore.getBankAccountList())
+
+    await Promise.allSettled(tasks.map(t => Promise.resolve(t)))
   } catch (error) {
     console.error("Error during initData:", error);
     // 可以在这里执行额外的错误处理逻辑，例如通知用户或记录日志

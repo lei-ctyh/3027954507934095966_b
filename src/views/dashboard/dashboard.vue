@@ -166,6 +166,45 @@ import moment from 'moment'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+const BAIDU_MAP_SCRIPT_ID = 'baidu-map-webgl-sdk'
+const BAIDU_MAP_AK = import.meta.env.VITE_APP_BAIDU_MAP_AK || ''
+
+function loadBaiduMapGL() {
+  if (window.BMapGL) return Promise.resolve(window.BMapGL)
+  if (!BAIDU_MAP_AK) return Promise.reject(new Error('未配置 VITE_APP_BAIDU_MAP_AK'))
+
+  return new Promise((resolve, reject) => {
+    const existing = document.getElementById(BAIDU_MAP_SCRIPT_ID)
+    if (existing) {
+      const onLoad = () => {
+        cleanup()
+        window.BMapGL ? resolve(window.BMapGL) : reject(new Error('BMapGL 加载失败'))
+      }
+      const onError = () => {
+        cleanup()
+        reject(new Error('百度地图脚本加载失败'))
+      }
+      const cleanup = () => {
+        existing.removeEventListener('load', onLoad)
+        existing.removeEventListener('error', onError)
+      }
+      existing.addEventListener('load', onLoad)
+      existing.addEventListener('error', onError)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = BAIDU_MAP_SCRIPT_ID
+    script.type = 'text/javascript'
+    script.async = true
+    script.defer = true
+    script.src = `https://api.map.baidu.com/api?v=1.0&type=webgl&ak=${encodeURIComponent(BAIDU_MAP_AK)}`
+    script.onload = () => (window.BMapGL ? resolve(window.BMapGL) : reject(new Error('BMapGL 加载失败')))
+    script.onerror = () => reject(new Error('百度地图脚本加载失败'))
+    document.head.appendChild(script)
+  })
+}
+
 const map = ref()
 const showWhich = computed(()=>{
   return router.currentRoute.value.path === '/system/dashboard'
@@ -614,7 +653,13 @@ function getDailyPData() {
   dailyP.value = result
 }
 
-function initMap() {
+async function initMap() {
+  try {
+    await loadBaiduMapGL()
+  } catch {
+    return
+  }
+
   map.value = new BMapGL.Map('boardMap')
 
   let myIcon = new BMapGL.Icon(
@@ -709,7 +754,7 @@ onMounted((() => {
   getAlarmList()
   getAreaList()
   nextTick((() => {
-    initMap()
+    void initMap()
     getConsumption()
     getEnergy()
     getDailyPData()

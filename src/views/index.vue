@@ -1039,11 +1039,7 @@
             <span>捐赠支持</span>
           </div>
           <div class="body">
-            <img
-              src="@/assets/images/pay.png"
-              alt="donate"
-              width="100%"
-            />
+          
             <span style="display: inline-block; height: 30px; line-height: 30px"
             >你可以请作者喝杯咖啡表示鼓励</span
             >
