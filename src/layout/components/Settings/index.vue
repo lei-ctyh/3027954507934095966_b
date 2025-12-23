@@ -57,13 +57,6 @@
     </div>
 
     <div class="drawer-item">
-      <span>显示 Logo</span>
-      <span class="comp-style">
-        <el-switch v-model="sidebarLogo" class="drawer-switch" />
-      </span>
-    </div>
-
-    <div class="drawer-item">
       <span>动态标题</span>
       <span class="comp-style">
         <el-switch v-model="dynamicTitle" class="drawer-switch" />
@@ -124,13 +117,6 @@ const fixedHeader = computed({
     settingsStore.changeSetting({ key: 'fixedHeader', value: val })
   }
 })
-/**是否需要侧边栏的logo */
-const sidebarLogo = computed({
-  get: () => storeSettings.value.sidebarLogo,
-  set: (val) => {
-    settingsStore.changeSetting({ key: 'sidebarLogo', value: val })
-  }
-})
 /**是否需要侧边栏的动态网页的title */
 const dynamicTitle = computed({
   get: () => storeSettings.value.dynamicTitle,
@@ -156,7 +142,6 @@ function saveSetting() {
     "topNav": storeSettings.value.topNav,
     "tagsView": storeSettings.value.tagsView,
     "fixedHeader": storeSettings.value.fixedHeader,
-    "sidebarLogo": storeSettings.value.sidebarLogo,
     "dynamicTitle": storeSettings.value.dynamicTitle,
     "sideTheme": storeSettings.value.sideTheme,
     "theme": storeSettings.value.theme

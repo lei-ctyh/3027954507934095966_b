@@ -1,13 +1,14 @@
 <template>
   <div class="login">
-    <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
+    <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="off">
       <h3 class="title">ruoyi-erp后台管理系统</h3>
       <el-form-item prop="username">
         <el-input
           v-model="loginForm.username"
           type="text"
           size="large"
-          auto-complete="off"
+          autocomplete="off"
+          name="login_username"
           placeholder="账号"
         >
           <template #prefix><svg-icon icon-class="user" class="el-input__icon input-icon" /></template>
@@ -18,7 +19,8 @@
           v-model="loginForm.password"
           type="password"
           size="large"
-          auto-complete="off"
+          autocomplete="new-password"
+          name="login_password"
           placeholder="密码"
           @keyup.enter="handleLogin"
         >
@@ -29,7 +31,8 @@
         <el-input
           v-model="loginForm.code"
           size="large"
-          auto-complete="off"
+          autocomplete="off"
+          name="login_code"
           placeholder="验证码"
           style="width: 63%"
           @keyup.enter="handleLogin"
@@ -90,8 +93,8 @@ const route = useRoute();
 const { proxy } = getCurrentInstance();
 
 const loginForm = ref({
-  username: "admin",
-  password: "admin123",
+  username: "",
+  password: "",
   rememberMe: false,
   code: "",
   uuid: ""
