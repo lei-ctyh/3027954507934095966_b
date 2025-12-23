@@ -44,6 +44,7 @@
         <el-col :span="6"><span style="font-size: large">销售退货单</span></el-col>
         <el-col :span="1.5">
           <el-button
+            v-if="false"
             type="primary"
             plain
             icon="Plus"

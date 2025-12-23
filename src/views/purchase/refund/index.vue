@@ -44,6 +44,7 @@
         <el-col :span="6"><span style="font-size: large">采购退货单</span></el-col>
         <el-col :span="1.5">
           <el-button
+            v-if="false"
             type="primary"
             plain
             icon="Plus"
@@ -156,7 +157,7 @@
                   <el-button type="danger" @click="handleDelete(scope.row)" link v-hasPermi="['purchase:refund:all']" :disabled="[1].includes(scope.row.checkedStatus)">删除</el-button>
                 </template>
               </el-popover>
-              <el-button link type="primary" @click="handlePrint(scope.row)" v-hasPermi="['wms:check:all']">打印</el-button>
+              <el-button v-if="false" link type="primary" @click="handlePrint(scope.row)" v-hasPermi="['wms:check:all']">打印</el-button>
             </div>
           </template>
         </el-table-column>
