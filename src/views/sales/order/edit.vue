@@ -32,7 +32,7 @@
                 <el-col :span="8">
                   <el-form-item label="客户" prop="merchantId">
                     <el-select v-model="form.merchantId" placeholder="请选择客户" clearable filterable style="width:100%">
-                      <el-option v-for="item in useBasicStore().supplierList" :key="item.id" :label="item.merchantName" :value="item.id"/>
+                      <el-option v-for="item in useBasicStore().customerList" :key="item.id" :label="item.merchantName" :value="item.id"/>
                     </el-select>
                   </el-form-item>
                 </el-col>
@@ -536,6 +536,10 @@ const doFinishEdit = async () => {
 
 const route = useRoute();
 onMounted(() => {
+  const basicStore = useBasicStore()
+  if (!basicStore.customerList?.length) {
+    basicStore.getMerchantList()
+  }
   form.value.docDate = parseTime(new Date(), "{y}-{m}-{d}")
   const id = route.query && route.query.id;
   if (id) {

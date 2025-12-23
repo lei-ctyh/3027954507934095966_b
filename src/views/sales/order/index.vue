@@ -479,6 +479,10 @@ function handleExport() {
 }
   const route = useRoute();
   onMounted(() => {
+    const basicStore = useBasicStore()
+    if (!basicStore.merchantList?.length) {
+      basicStore.getMerchantList()
+    }
     const relatedNo = route.query && route.query.relatedNo;
     if (relatedNo) {
       queryParams.value.docNo = relatedNo;

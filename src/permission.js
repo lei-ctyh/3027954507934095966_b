@@ -64,8 +64,9 @@ router.beforeEach((to, from, next) => {
       if (useUserStore().roles.length === 0) {
         isRelogin.show = true
         // 判断当前用户是否已拉取完user_info信息
-        useUserStore().getInfo().then(() => {
+        useUserStore().getInfo().then(async () => {
           isRelogin.show = false
+          await initData()
           usePermissionStore().generateRoutes().then(accessRoutes => {
             // 根据roles权限生成可访问的路由表
             accessRoutes.forEach(route => {
@@ -85,7 +86,6 @@ router.beforeEach((to, from, next) => {
             next({ path: '/' })
           })
         })
-        initData()
       } else {
         if (to.path === '/') {
           next({ path: getFirstAccessiblePath(), replace: true })
