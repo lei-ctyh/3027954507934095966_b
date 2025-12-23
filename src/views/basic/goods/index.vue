@@ -737,6 +737,9 @@ const getVolumeText = (row) => {
     + ((row.height || row.height === 0) ? (' 高：' + row.height) : '')
 }
 onMounted(() => {
+  useBasicStore().getCategoryList();
+  useBasicStore().getCategoryTreeList();
+  useBasicStore().getBrandList();
   nextTick(()=>{
     getList();
     if (route.query.openDrawer) {
