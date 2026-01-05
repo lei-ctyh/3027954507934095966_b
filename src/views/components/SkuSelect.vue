@@ -175,7 +175,7 @@ const getListByPurchaseOrderId = (id) => {
   getPage()
 }
 const goCreateItem = () => {
-  const data = proxy.$router.resolve({path: '/system/itemManage2', query: {openDrawer: true}})
+  const data = proxy.$router.resolve({path: '/basic/goods', query: {openDrawer: true}})
   window.open(data.href, '_blank')
 }
 // 定义props

@@ -52,14 +52,6 @@
 
       <el-row :gutter="10" class="mb8" type="flex" justify="space-between">
         <el-col :span="6"><span style="font-size: large">销售出库单</span></el-col>
-        <el-col :span="1.5">
-          <el-button
-            type="primary"
-            plain
-            icon="Plus"
-            @click="handleAdd"
-          >新增</el-button>
-        </el-col>
       </el-row>
 
       <el-table v-loading="loading"
