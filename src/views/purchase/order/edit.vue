@@ -279,6 +279,9 @@ const data = reactive({
     merchantId: [
       {required: true, message: "供应商不能为空", trigger: "blur"}
     ],
+    docDate: [
+      { required: true, message: "单据日期不能为空", trigger: "change" }
+    ],
     bankAccountId: [
       { validator: validateBankAccount, trigger: ['blur', 'change'] }
     ],

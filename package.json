@@ -1,7 +1,7 @@
 {
   "name": "ruoyi-erp",
   "version": "4.8.2",
-  "description": "ruoyi-erp后台管理系统",
+  "description": "食品饮料进销存后台管理系统",
   "author": "ZCC",
   "license": "MIT",
   "scripts": {

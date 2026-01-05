@@ -25,7 +25,7 @@ defineProps({
   }
 })
 
-const title = ref('ruoyi-erp');
+const title = computed(() => import.meta.env.VITE_APP_TITLE);
 const settingsStore = useSettingsStore();
 const sideTheme = computed(() => settingsStore.sideTheme);
 </script>
