@@ -27,7 +27,7 @@
         <el-form-item label="操作类型" prop="optType" class="col4">
           <el-select style="width: 100%" v-model="queryParams.optType" placeholder="请择操作类型"
                      filterable clearable>
-            <el-option v-for="item in  wms_inventory_history_type" :key="item.value" :label="item.label"
+            <el-option v-for="item in filteredInventoryHistoryTypes" :key="item.value" :label="item.label"
                        :value="item.value"/>
           </el-select>
         </el-form-item>
@@ -149,7 +149,7 @@
 
 <script setup name="InventoryHistory">
 import {listInventoryHistory} from "@/api/wms/inventoryHistory";
-import {getCurrentInstance, reactive, ref} from "vue";
+import {computed, getCurrentInstance, reactive, ref} from "vue";
 import {useBasicStore} from '@/store/modules/basic'
 const defaultTime = reactive([new Date(0,0,0,0,0,0), new Date(0,0,0,23,59,59)])
 const {proxy} = getCurrentInstance();
@@ -173,8 +173,32 @@ const queryParams = ref({
   createTimeRange: undefined
 })
 
+const inboundOptTypeLabels = new Set(['采购入库', '销售退货', '销售退货单', '其他入库', '其他入库单'])
+const outboundOptTypeLabels = new Set(['销售出库', '采购退货', '采购退货单', '其他出库', '其他出库单'])
+
+const filteredInventoryHistoryTypes = computed(() => {
+  const all = wms_inventory_history_type || []
+  const summaryType = queryParams.value.summaryType
+  if (summaryType === 1) {
+    return all.filter(item => inboundOptTypeLabels.has(item.label))
+  }
+  if (summaryType === -1) {
+    return all.filter(item => outboundOptTypeLabels.has(item.label))
+  }
+  return all
+})
+
+function sanitizeOptTypeSelection() {
+  const allowedValues = new Set(filteredInventoryHistoryTypes.value.map(item => item.value))
+  const selected = queryParams.value.optType
+  if (selected !== undefined && selected !== null && !allowedValues.has(selected)) {
+    queryParams.value.optType = undefined
+  }
+}
+
 /** 查询往来单位列表 */
 function getList() {
+  sanitizeOptTypeSelection()
   const query = {...queryParams.value}
   if (query.optType === -1) {
     query.optType = null
@@ -193,6 +217,7 @@ function getList() {
 
 /** 搜索按钮操作 */
 function handleQuery() {
+  sanitizeOptTypeSelection()
   queryParams.value.pageNum = 1;
   getList();
 }

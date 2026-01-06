@@ -137,12 +137,13 @@
               <template #header>
                 <div style="display: flex; align-items: center;">
                   <div>仓库</div>
-                  <el-button style="margin-left: 10px" @click="setWarehouseDialogVisible">批量</el-button>
+                  <el-button style="margin-left: 10px" :disabled="warehouseLocked" @click="setWarehouseDialogVisible">批量</el-button>
                 </div>
               </template>
               <template #default="scope">
                 <el-select v-model="scope.row.warehouseId" placeholder="请选择仓库"
-                           filterable>
+                           filterable
+                           :disabled="warehouseLocked">
                   <el-option v-for="item in useBasicStore().warehouseList" :key="item.id" :label="item.warehouseName"
                              :value="item.id"/>
                 </el-select>
@@ -289,6 +290,7 @@ const data = reactive({
 });
 const { form, rules} = toRefs(data);
 
+const warehouseLocked = computed(() => !!form.value.details?.length)
 
 
 // 计算商品总数量
@@ -353,6 +355,10 @@ const close = () => {
 const skuSelectShow = ref(false)
 
 const setWarehouseDialogVisible = () => {
+  if (warehouseLocked.value) {
+    ElMessage.error("已选择商品后不允许修改仓库");
+    return
+  }
   if(form.value.details?.length == 0){
     ElMessage.error("请先添加商品！");
   }else {
@@ -360,6 +366,10 @@ const setWarehouseDialogVisible = () => {
   }
 }
 const handleConfirmSetWarehouse = () => {
+  if (warehouseLocked.value) {
+    ElMessage.error("已选择商品后不允许修改仓库");
+    return
+  }
   if (!batchSetWarehouseId.value) {
     ElMessage.error("请选择仓库后再确定");
     return;
@@ -409,21 +419,23 @@ const save = async () => {
 }
 
 const handleChangeTotalAmount = (row) => {
-  if(row.qty>0 && row.priceWithTax){
-    row.priceWithTax = parseFloat((row.totalAmount / row.qty).toFixed(2));
+  const qty = Math.max(0, Number(row.qty) || 0)
+  const totalAmount = Math.max(0, Number(row.totalAmount) || 0)
+  if (qty > 0) {
+    row.priceWithTax = parseFloat((totalAmount / qty).toFixed(2));
   }
 }
 
 const handleChangePrice = (row) => {
-  if(row.qty && row.priceWithTax){
-    row.totalAmount = parseFloat((row.qty * row.priceWithTax).toFixed(2));
-  }
+  const qty = Math.max(0, Number(row.qty) || 0)
+  const priceWithTax = Math.max(0, Number(row.priceWithTax) || 0)
+  row.totalAmount = parseFloat((qty * priceWithTax).toFixed(2));
 }
 
 const handleChangeQty = (row) => {
-  if(row.qty && row.priceWithTax){
-    row.totalAmount = parseFloat((row.qty * row.priceWithTax).toFixed(2));
-  }
+  const qty = Math.max(0, Number(row.qty) || 0)
+  const priceWithTax = Math.max(0, Number(row.priceWithTax) || 0)
+  row.totalAmount = parseFloat((qty * priceWithTax).toFixed(2));
 }
 
 const getParamsBeforeSave = (orderStatus) => {

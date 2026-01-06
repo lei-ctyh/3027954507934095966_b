@@ -336,7 +336,7 @@ onMounted(() => {
                 <el-button link type="danger" @click="handleDelete(scope.row)" v-hasPermi="['financial:paymentVoucher:all']" :disabled="[1].includes(scope.row.checkedStatus)">删除</el-button>
               </template>
             </el-popover>
-            <el-button link type="primary" @click="handlePrint(scope.row)" v-hasPermi="['financial:paymentVoucher:all']">打印</el-button>
+            <el-button v-if="false" link type="primary" @click="handlePrint(scope.row)" v-hasPermi="['financial:paymentVoucher:all']">打印</el-button>
           </template>
         </el-table-column>
       </el-table>

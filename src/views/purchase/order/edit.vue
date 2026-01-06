@@ -398,6 +398,18 @@ const handleOkClick = (item) => {
 // 初始化receipt-order-form ref
 const purchaseOrderForm = ref()
 
+function validateDetailsWarehouseRequired() {
+  if (!form.value.details?.length) {
+    return true
+  }
+  const invalidWarehouseList = form.value.details.filter(it => !it.warehouseId)
+  if (invalidWarehouseList.length) {
+    ElMessage.error('请为商品明细选择仓库')
+    return false
+  }
+  return true
+}
+
 const save = async () => {
   proxy.$refs["purchaseOrderForm"].validate(valid => {
     if (valid) {
@@ -452,6 +464,9 @@ const doSave = async (orderStatus = 0) => {
     if (!valid) {
       return ElMessage.error('请填写必填项')
     }
+    if (!validateDetailsWarehouseRequired()) {
+      return
+    }
     const params = getParamsBeforeSave(orderStatus)
     loading.value = true
     if (params.id) {
@@ -489,6 +504,9 @@ const doFinishEdit = async () => {
 
     if (!form.value.details?.length) {
       return ElMessage.error('请选择商品')
+    }
+    if (!validateDetailsWarehouseRequired()) {
+      return
     }
     if (form.value.details?.length) {
       const invalidQtyList = form.value.details.filter(it => !it.qty)

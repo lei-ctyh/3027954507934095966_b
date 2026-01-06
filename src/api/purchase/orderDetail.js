@@ -16,6 +16,13 @@ export function listByOrderId(orderId) {
   })
 }
 
+export function listRemainingByOrderId(orderId) {
+  return request({
+    url: '/purchase/orderDetail/listRemainingByOrderId/' + orderId,
+    method: 'get'
+  })
+}
+
 // 查询采购订单明细详细
 export function getOrderDetail(id) {
   return request({

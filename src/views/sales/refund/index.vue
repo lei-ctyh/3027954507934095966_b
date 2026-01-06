@@ -164,7 +164,7 @@
                   <el-button type="danger" @click="handleDelete(scope.row)" link v-hasPermi="['purchase:refund:all']" :disabled="[1].includes(scope.row.checkedStatus)">删除</el-button>
                 </template>
               </el-popover>
-              <el-button link type="primary" @click="handlePrint(scope.row)" v-hasPermi="['wms:check:all']">打印</el-button>
+              <el-button v-if="false" link type="primary" @click="handlePrint(scope.row)" v-hasPermi="['wms:check:all']">打印</el-button>
             </div>
           </template>
         </el-table-column>

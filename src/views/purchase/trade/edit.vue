@@ -261,7 +261,7 @@ import {useRoute} from "vue-router";
 import {useBasicStore} from '@/store/modules/basic'
 import {numSub, generateNo, parseTime} from '@/utils/ruoyi'
 import {delTradeDetail} from "../../../api/purchase/tradeDetail";
-import {listByOrderId} from "@/api/purchase/orderDetail";
+import {listRemainingByOrderId} from "@/api/purchase/orderDetail";
 import {getSummaries} from "@/utils/wmsUtil";
 
 const {proxy} = getCurrentInstance();
@@ -418,6 +418,18 @@ const handleOkClick = (item) => {
 
 // 初始化receipt-order-form ref
 const purchaseTradeForm = ref()
+
+function validateDetailsWarehouseRequired() {
+  if (!form.value.details?.length) {
+    return true
+  }
+  const invalidWarehouseList = form.value.details.filter(it => !it.warehouseId)
+  if (invalidWarehouseList.length) {
+    ElMessage.error('请为商品明细选择仓库')
+    return false
+  }
+  return true
+}
 const save = async () => {
   proxy.$refs["purchaseTradeForm"].validate(valid => {
     if (valid) {
@@ -471,6 +483,9 @@ const doSave = async (orderStatus = 0) => {
     if (!valid) {
       return ElMessage.error('请填写必填项')
     }
+    if (!validateDetailsWarehouseRequired()) {
+      return
+    }
     const params = getParamsBeforeSave(orderStatus)
     loading.value = true
     if (params.id) {
@@ -508,6 +523,9 @@ const doFinishEdit = async () => {
 
     if (!form.value.details?.length) {
       return ElMessage.error('请选择商品')
+    }
+    if (!validateDetailsWarehouseRequired()) {
+      return
     }
     if (form.value.details?.length) {
       const invalidQtyList = form.value.details.filter(it => !it.qty)
@@ -563,7 +581,7 @@ onMounted(() => {
     loading.value = true
     form.value.orderId = orderId
     //根据orderId查询订单明细
-    listByOrderId(orderId).then((response) => {
+    listRemainingByOrderId(orderId).then((response) => {
       form.value.details = response.data
     }).finally(() => {
       loading.value = false

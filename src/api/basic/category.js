@@ -58,10 +58,11 @@ export function getCategory(id) {
  * @param data
  */
 export function addCategory(data) {
+  const payload = normalizeCategoryPayload(data)
   return request({
     url: '/basic/category',
     method: 'post',
-    data: data
+    data: payload
   });
 };
 
@@ -70,12 +71,24 @@ export function addCategory(data) {
  * @param data
  */
 export function updateCategory(data) {
+  const payload = normalizeCategoryPayload(data)
   return request({
     url: '/basic/category',
     method: 'put',
-    data: data
+    data: payload
   });
 };
+
+function normalizeCategoryPayload(data) {
+  if (!data) {
+    return data
+  }
+  const payload = { ...data }
+  if (payload.pid === undefined) {
+    payload.pid = payload.parentId ?? 0
+  }
+  return payload
+}
 
 /**
  * 删除物料类型
