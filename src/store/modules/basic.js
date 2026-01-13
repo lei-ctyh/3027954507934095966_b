@@ -5,6 +5,13 @@ import { listBrand } from "@/api/basic/brand";
 import {defineStore} from "pinia";
 import {ref} from "vue";
 import {listBankAccountNoPage} from "@/api/basic/bankAccount";
+import useUserStore from "@/store/modules/user";
+
+function hasPermission(permission) {
+  const allPermission = "*:*:*";
+  const permissions = useUserStore().permissions || [];
+  return permissions.includes(allPermission) || permissions.includes(permission);
+}
 
 export const useBasicStore = defineStore('wms', () => {
 
@@ -13,7 +20,13 @@ export const useBasicStore = defineStore('wms', () => {
   const warehouseMap = ref(new Map());
 
   const getWarehouseList = () => {
-    listWarehouseNoPage({}).then((res) => {
+    if (!hasPermission("basic:warehouse:list")) {
+      warehouseList.value = [];
+      warehouseMap.value = new Map();
+      return Promise.resolve();
+    }
+
+    return listWarehouseNoPage({}).then((res) => {
       warehouseList.value = res.data;
       const map = new Map();
       warehouseList.value.forEach((supplier) => {
@@ -30,7 +43,15 @@ export const useBasicStore = defineStore('wms', () => {
   const merchantMap = ref(new Map());
 
   const getMerchantList = () => {
-    listMerchantNoPage({}).then((res) => {
+    if (!hasPermission("basic:merchant:list")) {
+      merchantList.value = [];
+      supplierList.value = [];
+      customerList.value = [];
+      merchantMap.value = new Map();
+      return Promise.resolve();
+    }
+
+    return listMerchantNoPage({}).then((res) => {
       merchantList.value = res.data;
       supplierList.value = res.data.filter(item => item.merchantTypeSupplier === 1);
       customerList.value = res.data.filter(item => item.merchantTypeCustomer === 1);
@@ -43,7 +64,13 @@ export const useBasicStore = defineStore('wms', () => {
   }
 
   const getBankAccountList = () => {
-    listBankAccountNoPage({}).then((res) => {
+    if (!hasPermission("basic:bankAccount:list")) {
+      bankAccountList.value = [];
+      bankAccountMap.value = new Map();
+      return Promise.resolve();
+    }
+
+    return listBankAccountNoPage({}).then((res) => {
       bankAccountList.value = res.data;
       const map = new Map()
       bankAccountList.value.forEach(item => {

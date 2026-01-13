@@ -43,6 +43,9 @@
           <img :src="codeUrl" @click="getCode" class="login-code-img"/>
         </div>
       </el-form-item>
+      <el-form-item style="width:100%; margin-bottom: 10px;">
+        <el-checkbox v-model="rememberPassword">记住密码</el-checkbox>
+      </el-form-item>
       <el-form-item style="width:100%;">
         <el-button
           :loading="loading"
@@ -83,6 +86,7 @@
 <script setup>
 import { getCodeImg } from "@/api/login";
 import useUserStore from '@/store/modules/user'
+import cache from '@/plugins/cache'
 
 const userStore = useUserStore()
 const router = useRouter();
@@ -95,6 +99,10 @@ const loginForm = ref({
   code: "",
   uuid: ""
 });
+
+const REMEMBER_LOGIN_KEY = 'ruoyi-erp:rememberLogin'
+const REMEMBER_LOGIN_TTL_MS = 7 * 24 * 60 * 60 * 1000
+const rememberPassword = ref(false)
 
 const currentYear = new Date().getFullYear();
 
@@ -115,6 +123,44 @@ const dialogVisible = ref(false);
 
 redirect.value = route.query.redirect;
 
+function loadRememberedLogin() {
+  const rawRemembered = cache.local.get(REMEMBER_LOGIN_KEY)
+  if (!rawRemembered) return
+
+  let remembered
+  try {
+    remembered = JSON.parse(rawRemembered)
+  } catch (error) {
+    cache.local.remove(REMEMBER_LOGIN_KEY)
+    return
+  }
+  if (!remembered || typeof remembered !== 'object') return
+
+  const expiresAt = Number(remembered.expiresAt || 0)
+  if (!expiresAt || Date.now() > expiresAt) {
+    cache.local.remove(REMEMBER_LOGIN_KEY)
+    return
+  }
+
+  loginForm.value.username = remembered.username || ''
+  loginForm.value.password = remembered.password || ''
+  rememberPassword.value = true
+}
+
+function saveRememberedLogin() {
+  cache.local.setJSON(REMEMBER_LOGIN_KEY, {
+    username: loginForm.value.username,
+    password: loginForm.value.password,
+    expiresAt: Date.now() + REMEMBER_LOGIN_TTL_MS
+  })
+}
+
+watch(rememberPassword, (enabled) => {
+  if (!enabled) {
+    cache.local.remove(REMEMBER_LOGIN_KEY)
+  }
+})
+
 function handleTry(){
   dialogVisible.value =true
 }
@@ -128,6 +174,11 @@ function handleLogin() {
       loading.value = true;
       // 调用action的登录方法
       userStore.login(loginForm.value).then(() => {
+        if (rememberPassword.value) {
+          saveRememberedLogin()
+        } else {
+          cache.local.remove(REMEMBER_LOGIN_KEY)
+        }
         router.push(redirect.value || "/");
       }).catch(() => {
         loading.value = false;
@@ -151,6 +202,7 @@ function getCode() {
 }
 
 getCode();
+loadRememberedLogin();
 </script>
 
 <style lang='scss' scoped>

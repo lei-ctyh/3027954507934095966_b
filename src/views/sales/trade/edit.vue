@@ -177,9 +177,12 @@
                 <el-input-number
                   v-model.number="scope.row.qty"
                   placeholder="数量"
+                  :value-on-clear="0"
+                  :max="scope.row.maxQty"
+                  @input="handleInputQty(scope.row, $event)"
                   @change="handleChangeQty(scope.row)"
                   :controls="false"
-                  :min="1"
+                  :min="0"
                   :precision="0"
                 ></el-input-number>
               </template>
@@ -264,7 +267,7 @@ import {numSub, generateNo, parseTime} from '@/utils/ruoyi'
 import {delTradeDetail} from "@/api/sales/tradeDetail";
 import InventorySelect from "@/views/components/InventorySelect.vue";
 import {getSummaries, getWarehouseAndSkuKey} from "@/utils/wmsUtil";
-import {listByOrderId} from "@/api/sales/orderDetail";
+import {listRemainingByOrderId} from "@/api/sales/orderDetail";
 
 const {proxy} = getCurrentInstance();
 const mode = ref(false)
@@ -317,6 +320,46 @@ const data = reactive({
 });
 const { form, rules} = toRefs(data);
 
+const orderRemainingQtyMap = ref(new Map())
+const qtyClampDedup = new Map()
+
+function getOrderRemainingQtyKey(row) {
+  return `${row?.warehouseId ?? ''}_${row?.skuId ?? ''}`
+}
+
+function getRemainingQtyForRow(row) {
+  const key = getOrderRemainingQtyKey(row)
+  const maxQty = orderRemainingQtyMap.value.get(key)
+  return Number(maxQty) || 0
+}
+
+function warnQtyClampedOnce(key, message, ttlMs = 1500) {
+  const now = Date.now()
+  const last = qtyClampDedup.get(key) || 0
+  if (now - last < ttlMs) return
+  qtyClampDedup.set(key, now)
+  ElMessage.warning(message)
+}
+
+function applyOrderRemainingDetails(details) {
+  const nextMap = new Map()
+  ;(details || []).forEach(it => {
+    const key = getOrderRemainingQtyKey(it)
+    const remain = Math.max(0, Number(it.qty) || 0)
+    nextMap.set(key, remain)
+  })
+  orderRemainingQtyMap.value = nextMap
+
+  form.value.details = (details || []).map(it => {
+    const maxQty = getRemainingQtyForRow(it)
+    const qty = Math.min(Math.max(0, Number(it.qty) || 0), maxQty)
+    return {
+      ...it,
+      qty,
+      maxQty
+    }
+  })
+}
 
 // 计算商品总数量
 const goodsQty = computed(() => {
@@ -414,10 +457,15 @@ const handleOkClick = (item) => {
   selectedInventory.value = [...item]
   item.forEach(it => {
     if (!form.value.details.find(detail => getWarehouseAndSkuKey(detail) === getWarehouseAndSkuKey(it))) {
+      const maxQty = getRemainingQtyForRow(it)
+      const fallbackQty = Math.max(0, Number(it.qty) || 0)
+      const qty = maxQty > 0 ? Math.min(fallbackQty, maxQty) : fallbackQty
       form.value.details.push(
         {
           ...it,
           id: null,
+          qty,
+          maxQty,
           priceWithTax:it.sku?.sellingPrice
         }
       )
@@ -451,8 +499,27 @@ const handleChangePrice = (row) => {
 }
 
 const handleChangeQty = (row) => {
+  const maxQty = Math.max(0, Number(row.maxQty ?? getRemainingQtyForRow(row)) || 0)
+  if (maxQty > 0 && Number(row.qty) > maxQty) {
+    row.qty = maxQty
+    warnQtyClampedOnce(getOrderRemainingQtyKey(row), `数量不能超过剩余可出库数量（最大 ${maxQty}）`)
+  }
   if(row.qty && row.priceWithTax){
-    row.totalAmount = parseFloat((row.qty * row.priceWithTax).toFixed(2));
+    row.totalAmount = parseFloat((Number(row.qty) * Number(row.priceWithTax)).toFixed(2));
+  }
+}
+
+const handleInputQty = (row, val) => {
+  const nextQty = Math.max(0, Number.parseInt(`${val ?? 0}`, 10) || 0)
+  const maxQty = Math.max(0, Number(row.maxQty ?? getRemainingQtyForRow(row)) || 0)
+  if (maxQty > 0 && nextQty > maxQty) {
+    row.qty = maxQty
+    warnQtyClampedOnce(getOrderRemainingQtyKey(row), `数量不能超过剩余可出库数量（最大 ${maxQty}）`)
+  } else {
+    row.qty = nextQty
+  }
+  if(row.qty && row.priceWithTax){
+    row.totalAmount = parseFloat((Number(row.qty) * Number(row.priceWithTax)).toFixed(2));
   }
 }
 
@@ -574,8 +641,8 @@ onMounted(() => {
   if(orderId){
     loading.value = true
     form.value.orderId = orderId
-    listByOrderId(orderId).then((response) => {
-      form.value.details = response.data
+    listRemainingByOrderId(orderId).then((response) => {
+      applyOrderRemainingDetails(response.data)
     }).finally(() => {
       loading.value = false
     })

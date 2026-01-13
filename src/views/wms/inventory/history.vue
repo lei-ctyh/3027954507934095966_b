@@ -177,7 +177,7 @@ const inboundOptTypeLabels = new Set(['采购入库', '销售退货', '销售退
 const outboundOptTypeLabels = new Set(['销售出库', '采购退货', '采购退货单', '其他出库', '其他出库单'])
 
 const filteredInventoryHistoryTypes = computed(() => {
-  const all = wms_inventory_history_type || []
+  const all = Array.isArray(wms_inventory_history_type.value) ? wms_inventory_history_type.value : []
   const summaryType = queryParams.value.summaryType
   if (summaryType === 1) {
     return all.filter(item => inboundOptTypeLabels.has(item.label))

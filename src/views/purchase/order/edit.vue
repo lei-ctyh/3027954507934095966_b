@@ -153,6 +153,8 @@
                 <el-input-number
                   v-model="scope.row.qty"
                   placeholder="数量"
+                  :value-on-clear="0"
+                  @input="handleInputQty(scope.row, $event)"
                   @change="handleChangeQty(scope.row)"
                   :controls="false"
                   :min="0"
@@ -292,12 +294,12 @@ const { form, rules} = toRefs(data);
 
 // 计算商品总数量
 const goodsQty = computed(() => {
-  return form.value.details.reduce((sum, row) => sum + (row.qty || 0), 0);
+  return form.value.details.reduce((sum, row) => sum + (Number(row.qty) || 0), 0);
 });
 
 // 计算商品总数量
 const goodsAmount = computed(() => {
-  return form.value.details.reduce((sum, row) => sum + (row.totalAmount || 0), 0);
+  return form.value.details.reduce((sum, row) => sum + (Number(row.totalAmount) || 0), 0);
 });
 
 // 计算商品实际金额
@@ -421,6 +423,8 @@ const save = async () => {
 const handleChangeTotalAmount = (row) => {
   const qty = Math.max(0, Number(row.qty) || 0)
   const totalAmount = Math.max(0, Number(row.totalAmount) || 0)
+  row.qty = qty
+  row.totalAmount = totalAmount
   if (qty > 0) {
     row.priceWithTax = parseFloat((totalAmount / qty).toFixed(2));
   }
@@ -429,13 +433,25 @@ const handleChangeTotalAmount = (row) => {
 const handleChangePrice = (row) => {
   const qty = Math.max(0, Number(row.qty) || 0)
   const priceWithTax = Math.max(0, Number(row.priceWithTax) || 0)
+  row.qty = qty
+  row.priceWithTax = priceWithTax
   row.totalAmount = parseFloat((qty * priceWithTax).toFixed(2));
 }
 
 const handleChangeQty = (row) => {
   const qty = Math.max(0, Number(row.qty) || 0)
   const priceWithTax = Math.max(0, Number(row.priceWithTax) || 0)
+  row.qty = qty
+  row.priceWithTax = priceWithTax
   row.totalAmount = parseFloat((qty * priceWithTax).toFixed(2));
+}
+
+const handleInputQty = (row, val) => {
+  const qty = Math.max(0, Number.parseInt(`${val ?? 0}`, 10) || 0)
+  const priceWithTax = Math.max(0, Number(row.priceWithTax) || 0)
+  row.qty = qty
+  row.priceWithTax = priceWithTax
+  row.totalAmount = parseFloat((qty * priceWithTax).toFixed(2))
 }
 
 const getParamsBeforeSave = (orderStatus) => {

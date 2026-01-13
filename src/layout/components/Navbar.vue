@@ -8,7 +8,7 @@
       <div class="avatar-container">
         <el-dropdown @command="handleCommand" class="right-menu-item hover-effect" trigger="click">
           <div class="avatar-wrapper">
-            <img :src="userStore.avatar" class="user-avatar" />
+            <img :src="avatarSrc" class="user-avatar" @error="onAvatarError" />
             <el-icon><caret-bottom /></el-icon>
           </div>
           <template #dropdown>
@@ -40,10 +40,20 @@ import RuoYiDoc from '@/components/RuoYi/Doc'
 import useAppStore from '@/store/modules/app'
 import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
+import systemLogo from '@/assets/logo/logo.jpg'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
+
+const avatarLoadError = ref(false)
+const avatarSrc = computed(() => {
+  if (avatarLoadError.value) return systemLogo
+  return userStore.avatar || systemLogo
+})
+watch(() => userStore.avatar, () => {
+  avatarLoadError.value = false
+})
 
 function toggleSideBar() {
   appStore.toggleSideBar()
@@ -72,6 +82,10 @@ function logout() {
       location.href = import.meta.env.VITE_APP_CONTEXT_PATH + 'index';
     })
   }).catch(() => { });
+}
+
+function onAvatarError() {
+  avatarLoadError.value = true
 }
 
 const emits = defineEmits(['setLayout'])
