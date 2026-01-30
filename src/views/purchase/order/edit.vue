@@ -231,6 +231,7 @@
 </template>
 
 <script setup>
+// 采购订单编辑页：维护订单与明细，新增时清理明细主键避免覆盖历史记录。
 import {computed, getCurrentInstance, onMounted, reactive, ref, toRef, toRefs, watch} from "vue";
 import {addOrder, getOrder, updateOrder,passOrder} from "@/api/purchase/order";
 import {ElMessage, ElMessageBox} from "element-plus";
@@ -389,6 +390,7 @@ const handleOkClick = (item) => {
       form.value.details.push(
         {
           ...it,
+          id: undefined,
           priceWithTax:it.sku?.costPrice
         }
       )

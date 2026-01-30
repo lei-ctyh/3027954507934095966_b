@@ -31,6 +31,15 @@
 
       <el-row :gutter="10" class="mb8" type="flex" justify="space-between">
         <el-col :span="6"><span style="font-size: large">出库单</span></el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="primary"
+            plain
+            icon="Plus"
+            @click="handleAdd"
+            v-hasPermi="['wms:shipment:all']"
+          >新增</el-button>
+        </el-col>
       </el-row>
       <el-table v-loading="loading" :data="shipmentList" border class="mt20"
                 @expand-change="handleExpandExchange"
@@ -161,6 +170,7 @@
 </template>
 
 <script setup name="ShipmentOrder">
+// 出库管理列表页：查询与展示出库单，并提供新增入口。
 import {listShipmentOrder, delShipmentOrder, getShipmentOrder} from "@/api/wms/shipmentDoc";
 import {listByShipmentOrderId} from "@/api/wms/shipmentDocDetail";
 import {getCurrentInstance, reactive, ref, toRefs} from "vue";

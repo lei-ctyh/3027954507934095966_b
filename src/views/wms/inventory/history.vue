@@ -148,6 +148,7 @@
 </template>
 
 <script setup name="InventoryHistory">
+// 库存记录筛选：按入库/出库规则限定操作类型。
 import {listInventoryHistory} from "@/api/wms/inventoryHistory";
 import {computed, getCurrentInstance, reactive, ref} from "vue";
 import {useBasicStore} from '@/store/modules/basic'
@@ -173,8 +174,8 @@ const queryParams = ref({
   createTimeRange: undefined
 })
 
-const inboundOptTypeLabels = new Set(['采购入库', '销售退货', '销售退货单', '其他入库', '其他入库单'])
-const outboundOptTypeLabels = new Set(['销售出库', '采购退货', '采购退货单', '其他出库', '其他出库单'])
+const inboundOptTypeLabels = new Set(['采购入库', '销售退货', '其他入库'])
+const outboundOptTypeLabels = new Set(['销售出库', '采购退货', '其他出库'])
 
 const filteredInventoryHistoryTypes = computed(() => {
   const all = Array.isArray(wms_inventory_history_type.value) ? wms_inventory_history_type.value : []
