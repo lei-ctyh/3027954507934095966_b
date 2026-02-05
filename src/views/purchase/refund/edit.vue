@@ -375,11 +375,16 @@ const handleOkClick = (item) => {
   selectedInventory.value = [...item]
   item.forEach(it => {
     if (!form.value.details.find(detail => getWarehouseAndSkuKey(detail) === getWarehouseAndSkuKey(it))) {
+      const qty = Math.max(0, Number(it.qty) || 0)
+      const priceWithTax = Math.max(0, Number(it.sku?.costPrice) || 0)
       form.value.details.push(
         {
           ...it,
           id: null,
-          priceWithTax:it.sku?.costPrice
+          qty,
+          priceWithTax,
+          // 新增明细行时自动计算合计金额，避免为空导致汇总/校验异常
+          totalAmount: parseFloat((qty * priceWithTax).toFixed(2))
         })
     }
   })
@@ -399,21 +404,29 @@ const save = async () => {
 }
 
 const handleChangeTotalAmount = (row) => {
-  if(row.qty>0 && row.priceWithTax){
-    row.priceWithTax = parseFloat((row.totalAmount / row.qty).toFixed(2));
+  const qty = Math.max(0, Number(row.qty) || 0)
+  const totalAmount = Math.max(0, Number(row.totalAmount) || 0)
+  row.qty = qty
+  row.totalAmount = totalAmount
+  if (qty > 0) {
+    row.priceWithTax = parseFloat((totalAmount / qty).toFixed(2))
   }
 }
 
 const handleChangePrice = (row) => {
-  if(row.qty && row.priceWithTax){
-    row.totalAmount = parseFloat((row.qty * row.priceWithTax).toFixed(2));
-  }
+  const qty = Math.max(0, Number(row.qty) || 0)
+  const priceWithTax = Math.max(0, Number(row.priceWithTax) || 0)
+  row.qty = qty
+  row.priceWithTax = priceWithTax
+  row.totalAmount = parseFloat((qty * priceWithTax).toFixed(2))
 }
 
 const handleChangeQty = (row) => {
-  if(row.qty && row.priceWithTax){
-    row.totalAmount = parseFloat((row.qty * row.priceWithTax).toFixed(2));
-  }
+  const qty = Math.max(0, Number(row.qty) || 0)
+  const priceWithTax = Math.max(0, Number(row.priceWithTax) || 0)
+  row.qty = qty
+  row.priceWithTax = priceWithTax
+  row.totalAmount = parseFloat((qty * priceWithTax).toFixed(2))
 }
 
 const getParamsBeforeSave = (refundStatus) => {

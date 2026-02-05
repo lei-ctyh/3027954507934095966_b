@@ -114,7 +114,7 @@
           <template #default="{ row }">
             <div class="flex-space-between">
               <div>数量：</div>
-              <el-statistic :value="Number(row.qty)" :precision="0"/>
+              <div>{{ formatSignedQty(row) }}</div>
             </div>
             <div class="flex-space-between" v-if="row.amount || row.amount === 0">
               <div>金额：</div>
@@ -176,6 +176,33 @@ const queryParams = ref({
 
 const inboundOptTypeLabels = new Set(['采购入库', '销售退货', '其他入库'])
 const outboundOptTypeLabels = new Set(['销售出库', '采购退货', '其他出库'])
+
+const optTypeValueToLabel = computed(() => {
+  const all = Array.isArray(wms_inventory_history_type.value) ? wms_inventory_history_type.value : []
+  const map = new Map()
+  // dict 的 value 可能是 string/number，接口返回的 optType 也可能是 string/number，统一转 string 避免匹配失败
+  all.forEach(it => map.set(String(it.value), String(it.label ?? '')))
+  return map
+})
+
+function getOptTypeLabel(optTypeValue) {
+  return optTypeValueToLabel.value.get(String(optTypeValue))
+}
+
+function formatSignedQty(row) {
+  // 仅在前端展示层处理：数量取绝对值，并按操作类型强制加符号（金额不加符号）。
+  const qtyAbs = Math.abs(Number(row?.qty) || 0)
+  const label = String(getOptTypeLabel(row?.optType) ?? '').trim()
+  // label 可能包含额外文字（如“采购入库单”），用 includes 提升兼容性
+  if (label && Array.from(inboundOptTypeLabels).some(k => label.includes(k))) {
+    return `+${qtyAbs}`
+  }
+  if (label && Array.from(outboundOptTypeLabels).some(k => label.includes(k))) {
+    return `-${qtyAbs}`
+  }
+  // 未在规则覆盖范围内的类型保持原值（不强制加符号）。
+  return `${Number(row?.qty) || 0}`
+}
 
 const filteredInventoryHistoryTypes = computed(() => {
   const all = Array.isArray(wms_inventory_history_type.value) ? wms_inventory_history_type.value : []
